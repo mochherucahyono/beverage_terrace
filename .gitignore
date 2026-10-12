@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment (berisi password DB, secret, dll)
+.env
+.env.*
+
+# Hasil build
+dist/
+
+# Log
+*.log
+npm-debug.log*
+
+# File sistem editor/OS
+.DS_Store
+Thumbs.db
+.vscode/
+
+# tambahkan di .gitignore
+backend/uploads/*
+!backend/uploads/products/.gitkeep
