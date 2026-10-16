@@ -248,46 +248,50 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
       <!-- Panel Kiri: Katalog Produk -->
       <div class="lg:col-span-2 space-y-4 min-w-0">
         <!-- Pencarian -->
-        <div class="relative">
-          <Search class="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari rasa atau brand..."
-            autocomplete="off"
-            class="w-full text-xs py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
-          />
-          <button
-            v-if="searchQuery"
-            type="button"
-            @click="searchQuery = ''"
-            aria-label="Hapus pencarian"
-            class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
-          >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
+         <div class="sticky top-4 z-20 bg-white pb-3 pt-1 space-y-4">
+          
+          <div class="relative">
+            <Search class="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari rasa atau brand..."
+              autocomplete="off"
+              class="w-full text-xs py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
+            />
+            <button
+              v-if="searchQuery"
+              type="button"
+              @click="searchQuery = ''"
+              aria-label="Hapus pencarian"
+              title="Hapus pencarian"
+              class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
 
-        <!-- Filter Brand/Kategori -->
-        <div class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-          <button
-            type="button"
-            @click="selectCategory(null)"
-            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
-            :class="selectedCategory === null
-              ? 'bg-[#262624] text-white border-[#262624]'
-              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
-          >Semua Brand</button>
-          <button
-            v-for="cat in categories"
-            :key="cat.id"
-            type="button"
-            @click="selectCategory(cat.id)"
-            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
-            :class="selectedCategory === cat.id
-              ? 'bg-[#262624] text-white border-[#262624]'
-              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
-          >{{ cat.name }}</button>
+          <!-- Filter Brand/Kategori -->
+          <div class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+            <button
+              type="button"
+              @click="selectCategory(null)"
+              class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
+              :class="selectedCategory === null
+                ? 'bg-[#262624] text-white border-[#262624]'
+                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+            >Semua Brand</button>
+            <button
+              v-for="cat in categories"
+              :key="cat.id"
+              type="button"
+              @click="selectCategory(cat.id)"
+              class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
+              :class="selectedCategory === cat.id
+                ? 'bg-[#262624] text-white border-[#262624]'
+                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+            >{{ cat.name }}</button>
+          </div>
         </div>
 
         <!-- Memuat -->
@@ -437,6 +441,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                   <button
                     type="button"
                     @click="updateQuantity(index, -1)"
+                    :data-tooltip="item.quantity === 1 ? 'Hapus item' : 'Kurangi'"
                     :aria-label="item.quantity === 1 ? 'Hapus item' : 'Kurangi jumlah'"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                     :class="item.quantity === 1 ? 'text-red-500' : 'text-neutral-600'"
@@ -448,6 +453,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                   <button
                     type="button"
                     @click="updateQuantity(index, 1)"
+                    data-tooltip="Tambah"
                     aria-label="Tambah jumlah"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                   >

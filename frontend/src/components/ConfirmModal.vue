@@ -1,8 +1,9 @@
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue';
+// Sembunyikan jika tidak pakai router di modal ini, atau import router jika butuh redirect setelah konfirmasi
+// import { useRouter } from 'vue-router'; 
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-
-
+import { createRipple } from '../utils/ripple';
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -11,19 +12,34 @@ const props = defineProps({
   itemName: { type: String, default: '' },
   error: { type: String, default: '' },
   confirmText: { type: String, default: 'Hapus' },
-  loading: { type: Boolean, default: false }
+  loading: { type: Boolean, default: false },
+  redirectTo: { type: String, default: '' } // Opsional: jika ingin melakukan navigasi setelah konfirmasi
 });
 
 useBodyScrollLock(() => props.open);
 
 const emit = defineEmits(['confirm', 'cancel']);
-
+// const router = useRouter(); // Uncomment jika menggunakan vue-router
 const onBackdrop = () => {
   if (!props.loading) emit('cancel');
 };
 
 const onKey = (e) => {
   if (e.key === 'Escape' && props.open && !props.loading) emit('cancel');
+};
+
+// Fungsi handler tombol dengan efek ripple
+const handleButtonAction = (e, actionType) => {
+  e.preventDefault();
+  createRipple(e); // Menjalankan animasi ripple dari utilitas Anda
+
+  setTimeout(() => {
+    if (actionType === 'confirm') {
+      emit('confirm');
+    } else {
+      emit('cancel');
+    }
+  }, 200); // Jeda singkat agar animasi ripple sempat terlihat sebelum aksi berjalan
 };
 
 onMounted(() => window.addEventListener('keydown', onKey));
@@ -59,18 +75,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
         class="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 leading-relaxed"
       >{{ error }}</p>
 
+      <!-- Bagian Tombol Aksi dengan Efek Ripple -->
       <div class="flex items-center justify-end space-x-2 pt-1">
         <button
           type="button"
-          @click="emit('cancel')"
+          @click="(e) => handleButtonAction(e, 'cancel')"
           :disabled="loading"
-          class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 transition-colors"
         >Batal</button>
+        
         <button
           type="button"
-          @click="emit('confirm')"
+          @click="(e) => handleButtonAction(e, 'confirm')"
           :disabled="loading"
-          class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
         >{{ loading ? 'Menghapus...' : confirmText }}</button>
       </div>
     </div>

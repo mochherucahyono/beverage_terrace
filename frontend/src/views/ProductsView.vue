@@ -4,7 +4,7 @@ import api, { assetUrl } from '../services/api';
 import { resizeImage } from '../utils/image';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Plus, Search, X, Pencil, Trash2, Package } from 'lucide-vue-next';
+import { Plus, Search, X, Pencil, Trash2, Package, CheckCircle2, ChevronDown, Check } from 'lucide-vue-next';
 
 const products = ref([]);
 const categories = ref([]);
@@ -124,14 +124,16 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-/* Notice */
-const notice = ref('');
-let noticeTimer;
+// State untuk notifikasi sukses
+const successMessage = ref('');
+let successTimeout = null;
 
-const showNotice = (msg) => {
-  notice.value = msg;
-  clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => (notice.value = ''), 6000);
+const showSuccessBanner = (msg) => {
+  successMessage.value = msg;
+  if (successTimeout) clearTimeout(successTimeout);
+  successTimeout = setTimeout(() => {
+    successMessage.value = '';
+  }, 3500);
 };
 
 const saveProduct = async () => {
@@ -140,9 +142,11 @@ const saveProduct = async () => {
     let productId = form.value.id;
     if (isEditing.value) {
       await api.put(`/products/${productId}`, form.value);
+      showSuccessBanner('Data produk berhasil diperbaharui!');
     } else {
       const res = await api.post('/products', form.value);
       productId = res.data.data.id;
+      showSuccessBanner('Data produk berhasil disimpan!');
     }
 
     // Foto dikirim terpisah setelah data produk tersimpan
@@ -157,7 +161,7 @@ const saveProduct = async () => {
         await api.delete(`/products/${productId}/image`);
       }
     } catch (imgErr) {
-      showNotice('Data tersimpan, tetapi foto gagal diunggah: ' + (imgErr.response?.data?.message || imgErr.message));
+      showSuccessBanner('Data tersimpan, tetapi foto gagal diunggah: ' + (imgErr.response?.data?.message || imgErr.message));
     }
 
     closeModal();
@@ -192,7 +196,11 @@ const confirmDelete = async () => {
   try {
     const res = await api.delete(`/products/${deleteTarget.value.id}`);
     deleteTarget.value = null;
-    if (res.data?.deactivated) showNotice(res.data.message);
+    if (res.data?.deactivated) {
+    showNotice(res.data.message);
+    } else {
+      showSuccessBanner('Data produk berhasil dihapus!');
+    }
     fetchProducts();
   } catch (err) {
     deleteError.value = err.response?.data?.message || err.message;
@@ -297,6 +305,29 @@ onMounted(() => {
 });
 
 useBodyScrollLock(isModalOpen);
+
+// State untuk membuka/menutup custom dropdown kategori di modal
+const isCategoryDropdownOpen = ref(false);
+// Helper untuk mencari data objek kategori yang sedang dipilih berdasarkan ID di form
+const selectedCategoryObj = computed(() => {
+  return categories.value.find(c => String(c.id) === String(form.value.category_id)) || categories.value[0];
+});
+// Fungsi saat salah satu kategori diklik dari pilihan dropdown
+const selectFormCategory = (cat) => {
+  form.value.category_id = cat.id;
+  isCategoryDropdownOpen.value = false;
+};
+
+const isSortDropdownOpen = ref(false);
+
+const selectedSortObj = computed(() => {
+  return sortOptions.find(opt => opt.value === sortBy.value) || sortOptions[0];
+});
+
+const selectSortOption = (opt) => {
+  sortBy.value = opt.value;
+  isSortDropdownOpen.value = false;
+};
 </script>
 
 <template>
@@ -304,7 +335,7 @@ useBodyScrollLock(isModalOpen);
     <!-- Header Page & Button Tambah -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h1 class="text-base font-bold text-[#262624]">Kelola Stok & Varian Produk</h1>
+        <h1 class="text-base font-bold text-[#262624]">Manajemen Produk & Stok</h1>
         <p class="text-xs text-neutral-400">Atur daftar produk, harga modal, harga jual, dan sisa stok.</p>
       </div>
       <button
@@ -381,13 +412,42 @@ useBodyScrollLock(isModalOpen);
           </button>
         </div>
 
-        <select
-          v-model="sortBy"
-          aria-label="Urutkan produk"
-          class="text-xs py-2.5 px-3 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15"
-        >
-          <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-        </select>
+        <div class="relative shrink-0">
+          <!-- Tombol Pemicu Filter -->
+          <button
+            type="button"
+            @click="isSortDropdownOpen = !isSortDropdownOpen"
+            class="flex items-center justify-between gap-3 text-xs py-2.5 px-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all text-left"
+          >
+            <div class="flex items-center space-x-2">
+              <component :is="selectedSortObj.icon" class="w-4 h-4 text-neutral-400 shrink-0" />
+              <span class="font-medium text-[#262624]">{{ selectedSortObj.label }}</span>
+            </div>
+            <ChevronDown class="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+          </button>
+
+          <!-- Menu Pilihan Melayang (Floating Card) -->
+          <div
+            v-if="isSortDropdownOpen"
+            class="absolute right-0 mt-1.5 z-50 w-48 bg-white border border-neutral-100 rounded-2xl shadow-xl p-1.5 space-y-0.5"
+          >
+            <button
+              v-for="opt in sortOptions"
+              :key="opt.value"
+              type="button"
+              @click="selectSortOption(opt)"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-[#262624] hover:bg-neutral-100 transition-colors text-left"
+              :class="sortBy === opt.value ? 'font-bold bg-neutral-50' : 'font-medium'"
+            >
+              <div class="flex items-center space-x-2.5 truncate">
+                <component :is="opt.icon" class="w-4 h-4 text-neutral-500 shrink-0" />
+                <span class="truncate">{{ opt.label }}</span>
+              </div>
+              <!-- Tanda centang jika opsi ini sedang dipilih -->
+              <Check v-if="sortBy === opt.value" class="w-3.5 h-3.5 text-[#DA6B4F] shrink-0" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Filter kategori -->
@@ -579,11 +639,44 @@ useBodyScrollLock(isModalOpen);
             <p class="text-[10px] text-neutral-400 mt-1">Dipotong persegi dari tengah dan dikecilkan otomatis. Di HP bisa langsung foto dari kamera.</p>
           </div>
 
-          <div>
+          <div class="relative">
             <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Brand / Kategori</label>
-            <select v-model="form.category_id" required :class="inputClass">
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
+            
+            <!-- Tombol Pemicu Custom Dropdown -->
+            <button
+              type="button"
+              @click="isCategoryDropdownOpen = !isCategoryDropdownOpen"
+              class="w-full flex items-center justify-between text-xs p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all text-left"
+            >
+              <div class="flex items-center space-x-2 truncate">
+                <!-- Inisial Huruf Kategori atau Ikon Kecil -->
+                <span class="w-5 h-5 rounded-md bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[10px] font-bold shrink-0">
+                  {{ selectedCategoryObj?.name ? selectedCategoryObj.name.charAt(0).toUpperCase() : '?' }}
+                </span>
+                <span class="font-medium text-[#262624] truncate">{{ selectedCategoryObj?.name || 'Pilih Kategori' }}</span>
+              </div>
+              <!-- Icon panah bawah / indikator -->
+              <ChevronDown class="w-4 h-4 text-neutral-400 shrink-0" />
+            </button>
+
+            <!-- Daftar Pilihan Melayang (Floating Dropdown List) -->
+            <div
+              v-if="isCategoryDropdownOpen"
+              class="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-neutral-100 rounded-2xl shadow-xl p-1.5 space-y-0.5 max-h-48 overflow-y-auto"
+            >
+              <button
+                v-for="cat in categories"
+                :key="cat.id"
+                type="button"
+                @click="selectFormCategory(cat)"
+                class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs text-[#262624] hover:bg-neutral-100 transition-colors text-left"
+              >
+                <span class="w-5 h-5 rounded-md bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[10px] font-bold shrink-0">
+                  {{ cat.name.charAt(0).toUpperCase() }}
+                </span>
+                <span class="font-medium truncate">{{ cat.name }}</span>
+              </button>
+            </div>
           </div>
 
           <div>
@@ -643,4 +736,20 @@ useBodyScrollLock(isModalOpen);
       @cancel="cancelDelete"
     />
   </div>
+  <!-- Banner Notifikasi Sukses (Bawah Tengah) -->
+  <transition
+    enter-active-class="transition duration-300 ease-out"
+    enter-from-class="translate-y-10 opacity-0 scale-95"
+    enter-to-class="translate-y-0 opacity-100 scale-100"
+    leave-active-class="transition duration-200 ease-in"
+    leave-from-class="translate-y-0 opacity-100 scale-100"
+    leave-to-class="translate-y-10 opacity-0 scale-95"
+  >
+    <div v-if="successMessage" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+      <div class="bg-white text-[#262624] px-4 py-2.5 rounded-2xl shadow-lg border border-neutral-500/50 flex items-center space-x-2.5 text-xs font-medium pointer-events-auto">
+        <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0" />
+        <span>{{ successMessage }}</span>
+      </div>
+    </div>
+  </transition>
 </template>

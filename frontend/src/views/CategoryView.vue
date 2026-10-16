@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import api from '../services/api';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Plus, Search, X, Pencil, Trash2 } from 'lucide-vue-next';
+import { Plus, Search, X, Pencil, Trash2, CheckCircle2 } from 'lucide-vue-next';
 
 const categories = ref([]);
 const loading = ref(true);
@@ -11,6 +11,18 @@ const isModalOpen = ref(false);
 const isEditing = ref(false);
 const saving = ref(false);
 const form = ref({ id: null, name: '' });
+
+// State untuk banner sukses
+const successMessage = ref('');
+let successTimeout = null;
+
+const showSuccessBanner = (msg) => {
+  successMessage.value = msg;
+  if (successTimeout) clearTimeout(successTimeout);
+  successTimeout = setTimeout(() => {
+    successMessage.value = '';
+  }, 3500); // Banner hilang otomatis setelah 3.5 detik
+};
 
 // Pencarian otomatis (langsung memfilter saat mengetik)
 const searchQuery = ref('');
@@ -34,7 +46,7 @@ const fetchCategories = async () => {
     const res = await api.get('/categories');
     categories.value = res.data.data;
   } catch (err) {
-    console.error('Gagal mengambil brand:', err);
+    console.error('Gagal mengambil kategori:', err);
   } finally {
     loading.value = false;
   }
@@ -57,8 +69,10 @@ const saveCategory = async () => {
   try {
     if (isEditing.value) {
       await api.put(`/categories/${form.value.id}`, { name: form.value.name });
+      showSuccessBanner('Kategori berhasil diperbarui!');
     } else {
       await api.post('/categories', { name: form.value.name });
+      showSuccessBanner('Kategori berhasil disimpan!');
     }
     closeModal();
     fetchCategories();
@@ -92,6 +106,7 @@ const confirmDelete = async () => {
     await api.delete(`/categories/${deleteTarget.value.id}`);
     deleteTarget.value = null;
     fetchCategories();
+    showSuccessBanner('Kategori berhasil dihapus!');
   } catch (err) {
     deleteError.value = err.response?.data?.message || err.message;
   } finally {
@@ -103,11 +118,11 @@ onMounted(fetchCategories);
 </script>
 
 <template>
-  <div class="space-y-5">
+  <div class="space-y-5 relative min-h-screen pb-16">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h1 class="text-base font-bold text-[#262624]">Kelola Kategori</h1>
+        <h1 class="text-base font-bold text-[#262624]">Manajemen kategori</h1>
         <p class="text-xs text-neutral-400">Tambah atau ubah merek atau kategori minuman (Pop Ice, Good Day, dll).</p>
       </div>
       <button
@@ -197,7 +212,7 @@ onMounted(fetchCategories);
         <div class="flex items-center gap-1 shrink-0">
           <button
             @click="openModal(cat)"
-            title="Edit"
+            data-tooltip="Edit"
             aria-label="Edit kategori"
             class="w-9 h-9 rounded-xl flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 transition-colors"
           >
@@ -206,7 +221,7 @@ onMounted(fetchCategories);
           <button
             @click="askDelete(cat)"
             :disabled="cat.product_count > 0"
-            :title="cat.product_count > 0 ? 'Masih punya produk, tidak bisa dihapus' : 'Hapus'"
+            :data-tooltip="cat.product_count > 0 ? 'Masih punya produk, tidak bisa dihapus' : 'Hapus'"
             aria-label="Hapus kategori"
             class="w-9 h-9 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-500"
           >
@@ -290,5 +305,22 @@ onMounted(fetchCategories);
       @confirm="confirmDelete"
       @cancel="cancelDelete"
     />
+
+    <!-- Banner Notifikasi Sukses (Bawah Tengah) -->
+    <transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="translate-y-10 opacity-0 scale-95"
+      enter-to-class="translate-y-0 opacity-100 scale-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100 scale-100"
+      leave-to-class="translate-y-10 opacity-0 scale-95"
+    >
+      <div v-if="successMessage" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div class="bg-white text-[#262624] px-4 py-2.5 rounded-2xl shadow-lg border border-neutral-500/50 flex items-center space-x-2.5 text-xs font-medium pointer-events-auto">
+          <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{{ successMessage }}</span>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>

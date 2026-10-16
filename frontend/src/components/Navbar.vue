@@ -1,5 +1,6 @@
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { createRipple } from '../utils/ripple';
 // Import icon yang dibutuhkan dari lucide-vue-next
 import { 
   Calculator, 
@@ -10,6 +11,16 @@ import {
 } from 'lucide-vue-next';
 
 const route = useRoute();
+const router = useRouter();
+
+
+const handleNavigation = (e, path) => {
+  e.preventDefault();
+  createRipple(e);
+  setTimeout(() => {
+    router.push(path);
+  }, 200);
+};
 
 const links = [
   {
@@ -68,9 +79,10 @@ const isActive = (to) => route.path === to;
           v-for="link in links"
           :key="link.to"
           :to="link.to"
+          @click="(e) => handleNavigation(e, link.to)"
           class="px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 flex items-center space-x-2"
           :class="isActive(link.to)
-            ? 'bg-neutral-100 text-[#262624]'
+            ? 'bg-neutral-100 text-[#262624] border border-neutral-300'
             : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50'"
         >
           <!-- Render komponen icon Lucide secara dinamis -->
