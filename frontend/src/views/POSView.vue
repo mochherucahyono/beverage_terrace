@@ -2,7 +2,10 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import api, { assetUrl } from '../services/api';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Search, X, Plus, Minus, Trash2, ShoppingBag, Check } from 'lucide-vue-next';
+import { Search, X, Plus, Minus, Trash2, ShoppingBag, Check, Mic, MicOff } from 'lucide-vue-next';
+
+// Impor parser suara yang sudah Anda miliki (pastikan path file sesuai)
+import { interpretSpeech, productLabel } from '../utils/voice';
 
 /* ---------- State ---------- */
 const categories = ref([]);
@@ -21,6 +24,164 @@ const doneBtn = ref(null);
 
 // Kontrol keranjang di mobile (sheet dari bawah)
 const isMobileCartOpen = ref(false);
+
+/* ---------- State & Logika Perintah Suara (Voice Order Terintegrasi) ---------- */
+const isListening = ref(false);
+const voiceFeedback = ref('');
+let recognition = null;
+
+// Inisialisasi Web Speech API
+const initSpeechRecognition = () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('Browser Anda tidak mendukung Web Speech API.');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'id-ID';
+  recognition.continuous = false;
+  recognition.interimResults = true; // Mengambil hasil sementara untuk respons instan
+
+  recognition.onstart = () => {
+    isListening.value = true;
+    voiceFeedback.value = 'Mendengarkan... (Contoh: "Pop Ice Coklat 2")';
+  };
+
+  recognition.onresult = (event) => {
+    let interimText = '';
+    let finalText = '';
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalText += event.results[i][0].transcript;
+      } else {
+        interimText += event.results[i][0].transcript;
+      }
+    }
+
+    const currentText = finalText || interimText;
+    if (currentText) {
+      voiceFeedback.value = `Suara: "${currentText}"`;
+    }
+
+    if (finalText) {
+      handleVoiceResult(finalText);
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech Recognition Error:', event.error);
+    isListening.value = false;
+    voiceFeedback.value = 'Gagal mengenali suara. Coba lagi.';
+  };
+
+  recognition.onend = () => {
+    isListening.value = false;
+  };
+};
+
+// Text-to-Speech (Respon Suara Balik ke Kasir)
+const speak = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'id-ID';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+const toggleVoiceRecognition = () => {
+  if (!recognition) {
+    showToast('Fitur suara tidak didukung browser ini. Gunakan Google Chrome.', 'error');
+    return;
+  }
+
+  if (isListening.value) {
+    recognition.stop();
+  } else {
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+};
+
+// Proses Hasil Suara Menggunakan voiceOrderParser.js
+const handleVoiceResult = (rawText) => {
+  // Siapkan pool produk di database dan isi keranjang (untuk perintah hapus/kurang)
+  const pool = products.value;
+  const cartPool = cart.value.map(item => {
+    const matchedProd = products.value.find(p => p.id === item.product_id);
+    return matchedProd || { id: item.product_id, name: item.name };
+  });
+
+  // Jalankan interpreter parser
+  const interpretation = interpretSpeech([{ text: rawText, confidence: 0.9 }], {
+    pool,
+    cartPool,
+    defaultQty: 1
+  });
+
+  if (!interpretation || interpretation.intent === 'total') {
+    const msg = `Total pesanan saat ini adalah ${formatRupiah(totalAmount.value)}`;
+    voiceFeedback.value = msg;
+    showToast(msg, 'info');
+    speak(msg);
+    return;
+  }
+
+  if (interpretation.intent === 'clear') {
+    cart.value = [];
+    const msg = 'Keranjang berhasil dikosongkan.';
+    voiceFeedback.value = msg;
+    showToast(msg, 'warning');
+    speak(msg);
+    return;
+  }
+
+  // Tangani penambahan/pengurangan item
+  let summaryText = '';
+  interpretation.items.forEach(it => {
+    if (!it.product) {
+      if (it.candidates && it.candidates.length > 0) {
+        summaryText = `Produk ambigu, maksud Anda ${productLabel(it.candidates[0])}?`;
+      } else {
+        summaryText = `Produk tidak dikenali.`;
+      }
+      return;
+    }
+
+    const prod = it.product;
+    const qty = it.qty;
+
+    if (interpretation.intent === 'remove') {
+      const cartIdx = cart.value.findIndex(c => c.product_id === prod.id);
+      if (cartIdx !== -1) {
+        updateQuantity(cartIdx, -qty);
+        summaryText = `Mengurangi ${prod.name}`;
+      }
+    } else {
+      // Intent: Add
+      if (prod.stock <= 0) {
+        summaryText = `Stok ${prod.name} habis.`;
+      } else {
+        for (let i = 0; i < qty; i++) {
+          addToCart(prod);
+        }
+        summaryText = `Menambahkan ${qty} ${productLabel(prod)}`;
+      }
+    }
+  });
+
+  if (summaryText) {
+    voiceFeedback.value = summaryText;
+    showToast(summaryText, 'info');
+    speak(summaryText);
+  }
+};
 
 /* ---------- Notifikasi singkat (pengganti alert) ---------- */
 const toast = ref({ show: false, message: '', type: 'info' });
@@ -44,7 +205,6 @@ const fetchCategories = async () => {
   }
 };
 
-// Mencegah hasil request lama menimpa yang lebih baru saat ganti brand dengan cepat
 let productsRequestId = 0;
 
 const fetchProducts = async () => {
@@ -68,7 +228,7 @@ const selectCategory = (catId) => {
   fetchProducts();
 };
 
-/* ---------- Pencarian produk (otomatis, di data yang sudah dimuat) ---------- */
+/* ---------- Pencarian produk ---------- */
 const visibleProducts = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return products.value;
@@ -137,7 +297,6 @@ const totalQuantity = computed(() => {
 
 const change = computed(() => (Number(cashReceived.value) || 0) - totalAmount.value);
 
-// Hanya tampilkan nominal cepat yang cukup untuk membayar total
 const suggestedCash = computed(() => quickCash.filter((n) => n >= totalAmount.value));
 
 const canCheckout = computed(() => {
@@ -221,7 +380,6 @@ const cardClass = (prod) => {
 };
 
 /* ---------- Lifecycle ---------- */
-// Tutup sheet keranjang kalau layar berubah menjadi lebar (desktop)
 let mediaQuery;
 const onBreakpointChange = (e) => {
   if (e.matches) isMobileCartOpen.value = false;
@@ -230,14 +388,15 @@ const onBreakpointChange = (e) => {
 onMounted(() => {
   fetchCategories();
   fetchProducts();
+  initSpeechRecognition();
   mediaQuery = window.matchMedia('(min-width: 1024px)');
   mediaQuery.addEventListener?.('change', onBreakpointChange);
 });
 
-onBeforeUnmount(() => {
+onBeforeUnmount => {
   mediaQuery?.removeEventListener?.('change', onBreakpointChange);
   clearTimeout(toastTimer);
-});
+};
 
 useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
 </script>
@@ -247,51 +406,76 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <!-- Panel Kiri: Katalog Produk -->
       <div class="lg:col-span-2 space-y-4 min-w-0">
-        <!-- Pencarian -->
-         <div class="sticky top-4 z-20 bg-white pb-3 pt-1 space-y-4">
-          
-          <div class="relative">
-            <Search class="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Cari rasa atau brand..."
-              autocomplete="off"
-              class="w-full text-xs py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
-            />
-            <button
-              v-if="searchQuery"
+        
+        <!-- Bar Aktivasi Perintah Suara (Voice Order Terintegrasi Sempurna) -->
+        <div class="bg-white p-3.5 rounded-2xl border border-neutral-200 shadow-sm flex items-center justify-between gap-3">
+          <div class="flex items-center space-x-3 min-w-0">
+            <button 
               type="button"
-              @click="searchQuery = ''"
-              aria-label="Hapus pencarian"
-              title="Hapus pencarian"
-              class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+              @click="toggleVoiceRecognition"
+              class="relative p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center shrink-0 shadow-xs"
+              :class="isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-[#262624] text-white hover:bg-neutral-800'"
+              :title="isListening ? 'Matikan Mikrofon' : 'Mulai Perintah Suara'"
             >
-              <X class="w-4 h-4" />
+              <Mic v-if="!isListening" class="w-4 h-4" />
+              <MicOff v-else class="w-4 h-4" />
             </button>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-[#262624] flex items-center gap-1.5">
+                <span>Perintah Suara AI</span>
+                <span v-if="isListening" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+              </p>
+              <p class="text-[11px] text-neutral-400 truncate">
+                {{ voiceFeedback || 'Tekan mic dan ucapkan (misal: "Pop Ice Coklat 2")' }}
+              </p>
+            </div>
           </div>
+          <span class="text-[10px] font-medium bg-neutral-100 text-neutral-600 px-2.5 py-1 rounded-lg shrink-0 hidden sm:inline-block">
+            Hands-Free POS
+          </span>
+        </div>
 
-          <!-- Filter Brand/Kategori -->
-          <div class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
-            <button
-              type="button"
-              @click="selectCategory(null)"
-              class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
-              :class="selectedCategory === null
-                ? 'bg-[#262624] text-white border-[#262624]'
-                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
-            >Semua Brand</button>
-            <button
-              v-for="cat in categories"
-              :key="cat.id"
-              type="button"
-              @click="selectCategory(cat.id)"
-              class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
-              :class="selectedCategory === cat.id
-                ? 'bg-[#262624] text-white border-[#262624]'
-                : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
-            >{{ cat.name }}</button>
-          </div>
+        <!-- Pencarian -->
+        <div class="relative">
+          <Search class="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Cari rasa atau brand..."
+            autocomplete="off"
+            class="w-full text-xs py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="searchQuery = ''"
+            aria-label="Hapus pencarian"
+            class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Filter Brand/Kategori -->
+        <div class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            @click="selectCategory(null)"
+            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
+            :class="selectedCategory === null
+              ? 'bg-[#262624] text-white border-[#262624]'
+              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+          >Semua Brand</button>
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            type="button"
+            @click="selectCategory(cat.id)"
+            class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
+            :class="selectedCategory === cat.id
+              ? 'bg-[#262624] text-white border-[#262624]'
+              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+          >{{ cat.name }}</button>
         </div>
 
         <!-- Memuat -->
@@ -424,7 +608,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                 <div class="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center mb-3">
                   <ShoppingBag class="w-6 h-6 text-neutral-300" />
                 </div>
-                <p class="text-xs leading-relaxed">Pilih produk di sebelah kiri<br>untuk menambah pesanan</p>
+                <p class="text-xs leading-relaxed">Pilih produk di sebelah kiri / gunakan suara<br>untuk menambah pesanan</p>
               </div>
 
               <div
@@ -441,7 +625,6 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                   <button
                     type="button"
                     @click="updateQuantity(index, -1)"
-                    :data-tooltip="item.quantity === 1 ? 'Hapus item' : 'Kurangi'"
                     :aria-label="item.quantity === 1 ? 'Hapus item' : 'Kurangi jumlah'"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                     :class="item.quantity === 1 ? 'text-red-500' : 'text-neutral-600'"
@@ -453,7 +636,6 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                   <button
                     type="button"
                     @click="updateQuantity(index, 1)"
-                    data-tooltip="Tambah"
                     aria-label="Tambah jumlah"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                   >
@@ -674,7 +856,6 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
   }
 }
 
-/* Animasi hanya berlaku untuk sheet di mobile */
 @media (max-width: 1023px) {
   .sheet-up {
     animation: sheet-up 0.22s ease-out;
