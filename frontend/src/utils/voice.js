@@ -1,4 +1,4 @@
-// src/utils/voiceOrderParser.js
+// src/utils/voice.js
 // Parser perintah suara untuk kasir (Bahasa Indonesia).
 // JavaScript murni (tanpa Vue) supaya mudah diuji dan dipakai ulang.
 
