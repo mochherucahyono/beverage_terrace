@@ -357,7 +357,7 @@ const selectSortOption = (opt) => {
           ? 'border-[#262624]/25 ring-2 ring-[#262624]/5'
           : 'border-neutral-200/80 hover:border-neutral-300'"
       >
-        <p class="text-neutral-400 text-[11px] font-medium">Total Varian</p>
+        <p class="text-neutral-400 text-[11px] font-medium">Total Produk</p>
         <p class="text-lg font-bold text-[#262624] mt-0.5">{{ products.length }}</p>
       </button>
       <button
@@ -397,7 +397,7 @@ const selectSortOption = (opt) => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari varian produk / brand..."
+            placeholder="Cari produk atau brand..."
             autocomplete="off"
             class="w-full text-xs py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
           />
@@ -473,7 +473,7 @@ const selectSortOption = (opt) => {
       <!-- Indikator hasil -->
       <div v-if="hasActiveFilters" class="flex items-center justify-between text-[11px]">
         <span class="text-neutral-400">
-          Menampilkan {{ filteredProducts.length }} dari {{ products.length }} varian
+          Menampilkan {{ filteredProducts.length }} dari {{ products.length }} produk
         </span>
         <button @click="resetFilters" class="font-semibold text-neutral-500 hover:text-neutral-800">Reset filter</button>
       </div>
@@ -501,7 +501,7 @@ const selectSortOption = (opt) => {
         <div class="flex items-center gap-2 px-1">
           <h3 class="text-xs font-bold text-[#262624]">{{ group.name }}</h3>
           <span class="text-[10px] bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
-            {{ group.items.length }} varian
+            {{ group.items.length }} produk
           </span>
           <div class="flex-1 h-px bg-neutral-200/70"></div>
         </div>
@@ -575,7 +575,7 @@ const selectSortOption = (opt) => {
         <Package class="w-6 h-6" />
       </div>
       <template v-if="hasActiveFilters">
-        <p class="text-sm font-semibold text-[#262624]">Varian produk tidak ditemukan</p>
+        <p class="text-sm font-semibold text-[#262624]">Produk tidak ditemukan</p>
         <p class="text-xs text-neutral-400">Coba ubah kata kunci atau filter yang dipakai.</p>
         <button
           @click="resetFilters"
@@ -600,7 +600,7 @@ const selectSortOption = (opt) => {
       <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl border border-neutral-100 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-[#262624]">
-            {{ isEditing ? 'Edit Varian Produk' : 'Tambah Produk Baru' }}
+            {{ isEditing ? 'Edit Produk' : 'Tambah Produk Baru' }}
           </h3>
           <button
             type="button"
@@ -680,7 +680,7 @@ const selectSortOption = (opt) => {
           </div>
 
           <div>
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Nama Varian</label>
+            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Nama Produk</label>
             <input v-model="form.name" type="text" placeholder="misal: Mocafrio / Choco Cino" required :class="inputClass" />
           </div>
 
@@ -690,15 +690,15 @@ const selectSortOption = (opt) => {
               <input v-model.number="form.cost_price" type="number" required :class="inputClass" />
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Harga Jual per Cup</label>
+              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Harga Jual per Pcs</label>
               <input v-model.number="form.selling_price" type="number" required :class="inputClass" />
             </div>
           </div>
 
           <p class="text-[11px]" :class="formProfit < 0 ? 'text-red-600' : 'text-neutral-400'">
             {{ formProfit < 0
-              ? `Harga jual di bawah modal: rugi ${formatRupiah(Math.abs(formProfit))} per cup.`
-              : `Profit per cup: ${formatRupiah(formProfit)}` }}
+              ? `Harga jual di bawah modal: rugi ${formatRupiah(Math.abs(formProfit))} per pcs.`
+              : `Profit per pcs: ${formatRupiah(formProfit)}` }}
           </p>
 
           <div class="grid grid-cols-2 gap-2">
@@ -727,7 +727,7 @@ const selectSortOption = (opt) => {
     <!-- Modal Konfirmasi Hapus -->
     <ConfirmModal
       :open="!!deleteTarget"
-      title="Hapus Varian Produk?"
+      title="Hapus Produk?"
       message="Produk ini akan dihapus. Jika sudah pernah terjual, produk hanya dinonaktifkan agar riwayat penjualan tetap utuh."
       :item-name="deleteTarget ? `${deleteTarget.category_name} — ${deleteTarget.name}` : ''"
       :error="deleteError"

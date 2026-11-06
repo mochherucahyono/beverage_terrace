@@ -441,7 +441,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari rasa atau brand..."
+            placeholder="Cari produk atau brand..."
             autocomplete="off"
             class="w-full text-xs py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
           />

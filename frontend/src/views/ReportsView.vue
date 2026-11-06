@@ -10,7 +10,7 @@ const activeRange = ref('7');
 const filters = reactive({ start_date: '', end_date: '' });
 const report = ref({
   range: null,
-  summary: { transactions: 0, cups: 0, revenue: 0, profit: 0, margin: 0 },
+  summary: { transactions: 0, qtys: 0, revenue: 0, profit: 0, margin: 0 },
   daily: [],
   top_products: []
 });
@@ -246,12 +246,12 @@ const filteredDaily = computed(() => {
 
       <div class="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-sm">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium text-neutral-400">Cup Terjual</span>
+          <span class="text-[11px] font-medium text-neutral-400">Terjual</span>
           <span class="w-8 h-8 rounded-xl bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center">
             <ShoppingBag class="w-4 h-4" />
           </span>
         </div>
-        <p class="text-lg font-bold text-[#DA6B4F] mt-2">{{ report.summary.cups }}</p>
+        <p class="text-lg font-bold text-[#DA6B4F] mt-2">{{ report.summary.qtys }}</p>
         <p class="text-[11px] text-transparent select-none">.</p>
       </div>
 
@@ -274,7 +274,7 @@ const filteredDaily = computed(() => {
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 class="text-sm font-bold text-[#262624]">Produk Terlaris</h3>
-              <p class="text-[11px] text-neutral-400">Diurutkan dari jumlah cup terjual terbanyak.</p>
+              <p class="text-[11px] text-neutral-400">Diurutkan dari jumlah produk terjual terbanyak.</p>
             </div>
             <div class="relative w-full sm:w-56">
               <Search class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -340,7 +340,7 @@ const filteredDaily = computed(() => {
             <div class="min-w-0 flex-1 space-y-1.5">
               <div class="flex items-center justify-between gap-2">
                 <p class="text-xs font-bold text-[#262624] truncate">{{ p.name }}</p>
-                <p class="text-xs font-semibold text-neutral-600 shrink-0">{{ p.qty_sold }} cup</p>
+                <p class="text-xs font-semibold text-neutral-600 shrink-0">{{ p.qty_sold }} pcs</p>
               </div>
               <div class="h-1.5 rounded-full bg-neutral-100 overflow-hidden">
                 <div
@@ -405,7 +405,7 @@ const filteredDaily = computed(() => {
             <tr class="bg-neutral-50/80 border-b border-neutral-200 text-neutral-500 font-semibold">
               <th class="py-3 px-4">Tanggal</th>
               <th class="py-3 px-4 hidden sm:table-cell">Transaksi</th>
-              <th class="py-3 px-4">Cup</th>
+              <th class="py-3 px-4">Qty</th>
               <th class="py-3 px-4">Omzet</th>
               <th class="py-3 px-4 text-right">Laba</th>
             </tr>
@@ -422,7 +422,7 @@ const filteredDaily = computed(() => {
             <tr v-for="d in filteredDaily" :key="d.day" class="hover:bg-neutral-50/50 transition-colors">
               <td class="py-3 px-4 font-semibold text-neutral-700 whitespace-nowrap">{{ formatDay(d.day) }}</td>
               <td class="py-3 px-4 text-neutral-500 hidden sm:table-cell">{{ d.transactions }}</td>
-              <td class="py-3 px-4 text-neutral-600">{{ d.cups }}</td>
+              <td class="py-3 px-4 text-neutral-600">{{ d.qtys }}</td>
               <td class="py-3 px-4 text-neutral-600 whitespace-nowrap">{{ formatRupiah(d.revenue) }}</td>
               <td class="py-3 px-4 text-right font-semibold text-emerald-600 whitespace-nowrap">{{ formatRupiah(d.profit) }}</td>
             </tr>

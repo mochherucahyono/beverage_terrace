@@ -123,7 +123,7 @@ onMounted(fetchCategories);
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h1 class="text-base font-bold text-[#262624]">Manajemen kategori</h1>
-        <p class="text-xs text-neutral-400">Tambah atau ubah merek atau kategori minuman (Pop Ice, Good Day, dll).</p>
+        <p class="text-xs text-neutral-400">Tambah atau ubah merek atau kategori minuman dan snack.</p>
       </div>
       <button
         @click="openModal()"

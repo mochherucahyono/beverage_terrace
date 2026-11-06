@@ -22,7 +22,7 @@ exports.getSummary = async(req, res) => {
             [s]
         ] = await db.query(
             `SELECT COUNT(DISTINCT t.id) AS transactions,
-              COALESCE(SUM(ti.quantity), 0) AS cups,
+              COALESCE(SUM(ti.quantity), 0) AS qtys,
               COALESCE(SUM(ti.price * ti.quantity), 0) AS revenue,
               COALESCE(SUM((ti.price - ti.cost_price) * ti.quantity), 0) AS profit
        FROM transactions t
@@ -34,7 +34,7 @@ exports.getSummary = async(req, res) => {
         const [daily] = await db.query(
             `SELECT DATE_FORMAT(t.created_at, '%Y-%m-%d') AS day,
               COUNT(DISTINCT t.id) AS transactions,
-              SUM(ti.quantity) AS cups,
+              SUM(ti.quantity) AS qtys,
               SUM(ti.price * ti.quantity) AS revenue,
               SUM((ti.price - ti.cost_price) * ti.quantity) AS profit
        FROM transactions t
@@ -68,7 +68,7 @@ exports.getSummary = async(req, res) => {
                 range: { start_date: start, end_date: end },
                 summary: {
                     transactions: Number(s.transactions),
-                    cups: Number(s.cups),
+                    qtys: Number(s.qtys),
                     revenue,
                     profit,
                     margin: revenue > 0 ? Math.round((profit / revenue) * 1000) / 10 : 0
@@ -76,7 +76,7 @@ exports.getSummary = async(req, res) => {
                 daily: daily.map((d) => ({
                     day: d.day,
                     transactions: Number(d.transactions),
-                    cups: Number(d.cups),
+                    qtys: Number(d.qtys),
                     revenue: Number(d.revenue),
                     profit: Number(d.profit)
                 })),

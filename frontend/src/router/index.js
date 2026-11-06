@@ -11,18 +11,18 @@ const routes = [{
         component: POSView
     },
     {
-        path: '/products',
-        name: 'products',
+        path: '/product',
+        name: 'product',
         component: ProductsView
     },
     {
-        path: '/categories',
-        name: 'categories',
+        path: '/category',
+        name: 'category',
         component: CategoryView
     },
     {
-        path: '/reports',
-        name: 'reports',
+        path: '/report',
+        name: 'report',
         component: ReportsView
     },
     {

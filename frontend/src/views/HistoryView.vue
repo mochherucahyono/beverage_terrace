@@ -302,7 +302,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
               <p class="text-[11px] text-neutral-400 mt-0.5">
                 {{ formatDate(tx.created_at) }}
               </p>
-              <p class="text-[11px] text-neutral-500 mt-0.5">{{ tx.total_items }} cup</p>
+              <p class="text-[11px] text-neutral-500 mt-0.5">{{ tx.total_items }} pcs</p>
             </div>
 
             <div class="text-right shrink-0">

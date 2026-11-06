@@ -30,19 +30,19 @@ const links = [
     icon: Calculator
   },
   {
-    to: '/products',
+    to: '/product',
     label: 'Produk & Stok',
     short: 'Produk & Stok',
     icon: Package
   },
   {
-    to: '/categories',
+    to: '/category',
     label: 'Kategori',
     short: 'Kategori',
     icon: Tags
   },
   {
-    to: '/reports',
+    to: '/report',
     label: 'Laporan',
     short: 'Laporan',
     icon: BarChart3
