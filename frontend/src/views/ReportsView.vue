@@ -356,7 +356,6 @@ const filteredDaily = computed(() => {
           </li>
         </ul>
       </div>
-
       <LowStockAlert />
     </div>
 

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '../services/api';
 import ConfirmModal from '../components/ConfirmModal.vue';
+import {createRipple} from '../utils/ripple';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 import { Plus, Search, X, Pencil, Trash2, CheckCircle2 } from 'lucide-vue-next';
 
@@ -266,6 +267,7 @@ onMounted(fetchCategories);
             type="button"
             @click="closeModal"
             aria-label="Tutup"
+            data-tooltip="Tutup"
             class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
           >
             <X class="w-4 h-4" />

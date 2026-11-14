@@ -32,7 +32,7 @@ watch(() => props.refreshKey, fetchLowStock);
       <span
         v-if="items.length > 0"
         class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800"
-      >{{ items.length }} rasa perlu restock</span>
+      >{{ items.length }} produk perlu restock</span>
     </div>
 
     <p v-if="loading && items.length === 0" class="px-4 py-6 text-xs text-neutral-400">Memuat...</p>

@@ -1,10 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import api, { assetUrl } from '../services/api';
 import { resizeImage } from '../utils/image';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Plus, Search, X, Pencil, Trash2, Package, CheckCircle2, ChevronDown, Check } from 'lucide-vue-next';
+import { Plus, Search, X, Pencil, Trash2, Package, CheckCircle2, ChevronDown, Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const products = ref([]);
 const categories = ref([]);
@@ -142,11 +142,11 @@ const saveProduct = async () => {
     let productId = form.value.id;
     if (isEditing.value) {
       await api.put(`/products/${productId}`, form.value);
-      showSuccessBanner('Data produk berhasil diperbaharui!');
+      showSuccessBanner('Produk berhasil diperbarui!');
     } else {
       const res = await api.post('/products', form.value);
       productId = res.data.data.id;
-      showSuccessBanner('Data produk berhasil disimpan!');
+      showSuccessBanner('Produk berhasil disimpan!');
     }
 
     // Foto dikirim terpisah setelah data produk tersimpan
@@ -299,9 +299,40 @@ const resetFilters = () => {
   stockFilter.value = '';
 };
 
+/* ---------- Scroll filter kategori (chevron kiri/kanan) ---------- */
+const categoryScroller = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+let categoryResizeObserver;
+
+const updateCategoryScroll = () => {
+  const el = categoryScroller.value;
+  if (!el) return;
+  canScrollLeft.value = el.scrollLeft > 4;
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+};
+
+const scrollCategories = (direction) => {
+  const el = categoryScroller.value;
+  if (!el) return;
+  el.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: 'smooth' });
+};
+
+// Hitung ulang saat daftar kategori berubah (setelah render)
+watch(categories, () => nextTick(updateCategoryScroll), { deep: true });
+
 onMounted(() => {
   fetchCategories();
   fetchProducts();
+  if (categoryScroller.value && 'ResizeObserver' in window) {
+    categoryResizeObserver = new ResizeObserver(updateCategoryScroll);
+    categoryResizeObserver.observe(categoryScroller.value);
+  }
+  updateCategoryScroll();
+});
+
+onBeforeUnmount(() => {
+  categoryResizeObserver?.disconnect();
 });
 
 useBodyScrollLock(isModalOpen);
@@ -384,11 +415,6 @@ const selectSortOption = (opt) => {
       </button>
     </div>
 
-    <!-- Alert Notice -->
-    <div v-if="notice" class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-      {{ notice }}
-    </div>
-
     <!-- Panel Search, Filter & Urutan -->
     <div class="bg-white rounded-2xl border border-neutral-200/80 p-3 sm:p-4 shadow-sm space-y-3">
       <div class="flex flex-col sm:flex-row gap-2">
@@ -451,13 +477,33 @@ const selectSortOption = (opt) => {
       </div>
 
       <!-- Filter kategori -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+      <div class="relative">
+        <!-- Chevron kiri -->
+        <div
+          v-if="canScrollLeft"
+          class="absolute left-0 top-0 bottom-0.5 z-10 flex items-center pr-6 bg-gradient-to-r from-[#FAF9F5] via-[#FAF9F5]/90 to-transparent"
+        >
+          <button
+            type="button"
+            @click="scrollCategories(-1)"
+            aria-label="Geser kategori ke kiri"
+            class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+        </div>
+
+      <div
+        ref="categoryScroller"
+        @scroll.passive="updateCategoryScroll"
+        class="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5"
+      >
         <button
           @click="selectedCategory = ''"
           class="px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
           :class="selectedCategory === ''
             ? 'bg-[#262624] text-white border-[#262624]'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
         >Semua Kategori</button>
         <button
           v-for="cat in categories"
@@ -466,8 +512,24 @@ const selectSortOption = (opt) => {
           class="px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
           :class="String(selectedCategory) === String(cat.id)
             ? 'bg-[#262624] text-white border-[#262624]'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
         >{{ cat.name }}</button>
+      </div>
+
+        <!-- Chevron kanan -->
+        <div
+          v-if="canScrollRight"
+          class="absolute right-0 top-0 bottom-0.5 z-10 flex items-center justify-end pl-6 bg-gradient-to-l from-[#FAF9F5] via-[#FAF9F5]/90 to-transparent"
+        >
+          <button
+            type="button"
+            @click="scrollCategories(1)"
+            aria-label="Geser kategori ke kanan"
+            class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <!-- Indikator hasil -->
@@ -606,6 +668,7 @@ const selectSortOption = (opt) => {
             type="button"
             @click="closeModal"
             aria-label="Tutup"
+            data-tooltip="Tutup"
             class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
           >
             <X class="w-4 h-4" />
@@ -753,3 +816,12 @@ const selectSortOption = (opt) => {
     </div>
   </transition>
 </template>
+
+<style scoped>
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+</style>

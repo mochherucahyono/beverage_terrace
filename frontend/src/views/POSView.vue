@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import api, { assetUrl } from '../services/api';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Search, X, Plus, Minus, Trash2, ShoppingBag, Check, Mic, MicOff } from 'lucide-vue-next';
+import { Search, X, Plus, Minus, Trash2, ShoppingBag, Check, Mic, MicOff, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 // Impor parser suara yang sudah Anda miliki (pastikan path file sesuai)
 import { interpretSpeech, productLabel } from '../utils/voice';
+import { createRipple } from '../utils/ripple';
 
 /* ---------- State ---------- */
 const categories = ref([]);
@@ -22,6 +23,10 @@ const showSuccess = ref(false);
 const lastTransaction = ref(null);
 const doneBtn = ref(null);
 
+// Title halaman
+onMounted(() => {
+  document.title = 'Kasir - Teras Minuman';
+});
 // Kontrol keranjang di mobile (sheet dari bawah)
 const isMobileCartOpen = ref(false);
 
@@ -228,6 +233,28 @@ const selectCategory = (catId) => {
   fetchProducts();
 };
 
+/* ---------- Scroll filter kategori (chevron kiri/kanan) ---------- */
+const categoryScroller = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+let categoryResizeObserver;
+
+const updateCategoryScroll = () => {
+  const el = categoryScroller.value;
+  if (!el) return;
+  canScrollLeft.value = el.scrollLeft > 4;
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+};
+
+const scrollCategories = (direction) => {
+  const el = categoryScroller.value;
+  if (!el) return;
+  el.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: 'smooth' });
+};
+
+// Hitung ulang saat daftar kategori berubah (setelah render)
+watch(categories, () => nextTick(updateCategoryScroll), { deep: true });
+
 /* ---------- Pencarian produk ---------- */
 const visibleProducts = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
@@ -389,14 +416,27 @@ onMounted(() => {
   fetchCategories();
   fetchProducts();
   initSpeechRecognition();
+  if (categoryScroller.value && 'ResizeObserver' in window) {
+    categoryResizeObserver = new ResizeObserver(updateCategoryScroll);
+    categoryResizeObserver.observe(categoryScroller.value);
+  }
+  updateCategoryScroll();
   mediaQuery = window.matchMedia('(min-width: 1024px)');
   mediaQuery.addEventListener?.('change', onBreakpointChange);
 });
 
-onBeforeUnmount => {
+onBeforeUnmount(() => {
+  categoryResizeObserver?.disconnect();
   mediaQuery?.removeEventListener?.('change', onBreakpointChange);
   clearTimeout(toastTimer);
+});
+
+// Efek Ripple untuk tombol geser kategori kanan kiri
+const handleButtonClick = (e, direction) => {
+  createRipple(e);
+  scrollCategories(direction);
 };
+
 
 useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
 </script>
@@ -422,7 +462,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
             </button>
             <div class="min-w-0">
               <p class="text-xs font-bold text-[#262624] flex items-center gap-1.5">
-                <span>Perintah Suara AI</span>
+                <span>Perintah Suara</span>
                 <span v-if="isListening" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
               </p>
               <p class="text-[11px] text-neutral-400 truncate">
@@ -457,15 +497,36 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
         </div>
 
         <!-- Filter Brand/Kategori -->
-        <div class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+        <div class="relative">
+          <!-- Chevron kiri -->
+          <div
+            v-if="canScrollLeft"
+            class="absolute left-0 top-0 bottom-1 z-10 flex items-center pr-6 bg-gradient-to-r from-[#FAF9F5] via-[#FAF9F5]/90 to-transparent"
+          >
+            <button
+              type="button"
+              @click="(e) => handleButtonClick(e, -1)"
+              aria-label="Geser kategori ke kiri"
+              data-tooltip="Sebelumnya"
+              class="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+            >
+              <ChevronLeft class="w-4 h-4" />
+            </button>
+          </div>
+
+        <div
+          ref="categoryScroller"
+          @scroll.passive="updateCategoryScroll"
+          class="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1"
+        >
           <button
             type="button"
             @click="selectCategory(null)"
             class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
             :class="selectedCategory === null
               ? 'bg-[#262624] text-white border-[#262624]'
-              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
-          >Semua Brand</button>
+              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
+          >Semua Produk</button>
           <button
             v-for="cat in categories"
             :key="cat.id"
@@ -474,8 +535,25 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
             class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border"
             :class="selectedCategory === cat.id
               ? 'bg-[#262624] text-white border-[#262624]'
-              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'"
+              : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
           >{{ cat.name }}</button>
+        </div>
+
+          <!-- Chevron kanan -->
+          <div
+            v-if="canScrollRight"
+            class="absolute right-0 top-0 bottom-1 z-10 flex items-center justify-end pl-6 bg-gradient-to-l from-[#FAF9F5] via-[#FAF9F5]/90 to-transparent"
+          >
+            <button
+              type="button"
+              @click="(e) => handleButtonClick(e, 1)"
+              aria-label="Geser kategori ke kanan"
+              data-tooltip="Berikutnya"
+              class="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+            >
+              <ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <!-- Memuat -->
@@ -591,6 +669,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
             type="button"
             @click="isMobileCartOpen = false"
             aria-label="Tutup keranjang"
+            data-tooltip="Tutup"
             class="lg:hidden w-8 h-8 rounded-full bg-neutral-100 text-neutral-500 flex items-center justify-center hover:bg-neutral-200"
           >
             <X class="w-4 h-4" />
@@ -626,6 +705,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                     type="button"
                     @click="updateQuantity(index, -1)"
                     :aria-label="item.quantity === 1 ? 'Hapus item' : 'Kurangi jumlah'"
+                    :data-tooltip="item.quantity === 1 ? 'Hapus' : 'Kurangi'"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                     :class="item.quantity === 1 ? 'text-red-500' : 'text-neutral-600'"
                   >
@@ -637,6 +717,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
                     type="button"
                     @click="updateQuantity(index, 1)"
                     aria-label="Tambah jumlah"
+                    data-tooltip="Tambah"
                     class="w-8 h-8 rounded-lg bg-white border border-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
                   >
                     <Plus class="w-3.5 h-3.5" />

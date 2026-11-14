@@ -13,7 +13,7 @@ body {
 [data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
-    top: 120%;
+    top: 100%;
     /* Posisi di bawah tombol */
     right: 0;
     /* Buat rata kanan agar jika di pojok kanan, tooltip akan mengarah ke kiri dan tidak terpotong */

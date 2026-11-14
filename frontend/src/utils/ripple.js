@@ -35,5 +35,5 @@ export const createRipple = (e) => {
     // Hapus span animasi setelah selesai
     setTimeout(() => {
         circle.remove();
-    }, 400);
+    }, 200);
 };
