@@ -654,7 +654,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
       <!-- Keranjang: panel samping di desktop, sheet dari bawah di mobile -->
       <aside
         :class="isMobileCartOpen ? 'flex' : 'hidden lg:flex'"
-        class="sheet-up fixed inset-x-0 bottom-0 z-50 max-h-[85vh] flex-col overflow-hidden bg-white rounded-t-3xl shadow-2xl lg:sticky lg:inset-x-auto lg:bottom-auto lg:top-20 lg:z-0 lg:max-h-none lg:h-[calc(100vh-7rem)] lg:rounded-2xl lg:border lg:border-neutral-200/80 lg:shadow-sm"
+        class="sheet-up fixed inset-x-0 bottom-0 z-50 max-h-[90vh] flex-col overflow-hidden bg-white rounded-t-3xl shadow-2xl lg:sticky lg:inset-x-auto lg:bottom-auto lg:top-20 lg:z-0 lg:max-h-none lg:h-[calc(100vh-7rem)] lg:rounded-2xl lg:border lg:border-neutral-200/80 lg:shadow-sm"
       >
         <!-- Pegangan sheet (mobile) -->
         <div class="lg:hidden mx-auto mt-2.5 h-1 w-10 rounded-full bg-neutral-200 shrink-0"></div>
@@ -678,8 +678,8 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
 
         <!-- Isi (bisa digulir): item + pembayaran -->
         <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-          <div class="flex flex-col min-h-full px-5 py-3">
-            <div class="flex-1 space-y-2">
+          <div class="flex flex-col h-full min-h-[19rem] px-5 py-3">
+            <div class="flex-1 min-h-[8rem] overflow-y-auto overscroll-contain space-y-2 pr-1">
               <div
                 v-if="cart.length === 0"
                 class="h-full flex flex-col items-center justify-center text-center text-neutral-400 py-10"
@@ -693,45 +693,49 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
               <div
                 v-for="(item, index) in cart"
                 :key="item.product_id"
-                class="flex items-center gap-3 p-2.5 rounded-xl bg-neutral-50/80 border border-neutral-100"
+                class="p-2.5 rounded-xl bg-neutral-50/80 border border-neutral-100 space-y-2"
               >
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-semibold text-[#262624] truncate">{{ item.name }}</p>
-                  <p class="text-[11px] text-neutral-400">{{ formatRupiah(item.price) }}</p>
+                <!-- Baris 1: nama produk + subtotal -->
+                <div class="flex items-start justify-between gap-3">
+                  <p class="flex-1 min-w-0 text-xs font-semibold leading-snug text-[#262624] line-clamp-2 break-words">{{ item.name }}</p>
+                  <p class="shrink-0 text-xs font-bold text-[#262624] tabular-nums whitespace-nowrap">
+                    {{ formatRupiah(item.price * item.quantity) }}
+                  </p>
                 </div>
 
-                <div class="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    @click="updateQuantity(index, -1)"
-                    :aria-label="item.quantity === 1 ? 'Hapus item' : 'Kurangi jumlah'"
-                    :data-tooltip="item.quantity === 1 ? 'Hapus' : 'Kurangi'"
-                    class="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
-                    :class="item.quantity === 1 ? 'text-red-500' : 'text-neutral-600'"
-                  >
-                    <Trash2 v-if="item.quantity === 1" class="w-3.5 h-3.5" />
-                    <Minus v-else class="w-3.5 h-3.5" />
-                  </button>
-                  <span class="w-6 text-center text-xs font-bold tabular-nums text-[#262624]">{{ item.quantity }}</span>
-                  <button
-                    type="button"
-                    @click="updateQuantity(index, 1)"
-                    aria-label="Tambah jumlah"
-                    data-tooltip="Tambah"
-                    class="w-8 h-8 rounded-lg bg-white border border-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
-                  >
-                    <Plus class="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <!-- Baris 2: harga satuan + atur jumlah -->
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-[11px] text-neutral-400 whitespace-nowrap">{{ formatRupiah(item.price) }}</p>
 
-                <p class="w-20 text-right text-xs font-bold text-[#262624] tabular-nums">
-                  {{ formatRupiah(item.price * item.quantity) }}
-                </p>
+                  <div class="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      @click="updateQuantity(index, -1)"
+                      :aria-label="item.quantity === 1 ? 'Hapus item' : 'Kurangi jumlah'"
+                      :data-tooltip="item.quantity === 1 ? 'Hapus' : 'Kurangi'"
+                      class="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
+                      :class="item.quantity === 1 ? 'text-red-500' : 'text-neutral-600'"
+                    >
+                      <Trash2 v-if="item.quantity === 1" class="w-3.5 h-3.5" />
+                      <Minus v-else class="w-3.5 h-3.5" />
+                    </button>
+                    <span class="w-6 text-center text-xs font-bold tabular-nums text-[#262624]">{{ item.quantity }}</span>
+                    <button
+                      type="button"
+                      @click="updateQuantity(index, 1)"
+                      aria-label="Tambah jumlah"
+                      data-tooltip="Tambah"
+                      class="w-8 h-8 rounded-lg bg-white border border-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200"
+                    >
+                      <Plus class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Pembayaran -->
-            <div class="mt-3 pt-3 border-t border-neutral-100 space-y-3">
+            <div class="shrink-0 mt-3 pt-3 border-t border-neutral-100 space-y-3">
               <div class="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl">
                 <button
                   type="button"
