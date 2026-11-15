@@ -48,7 +48,7 @@ const links = [
   {
     to: '/product',
     label: 'Produk & Stok',
-    short: 'Produk & Stok',
+    short: 'Produk',
     icon: Package
   },
   {
@@ -131,19 +131,27 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Header atas (HP & tablet): logo saja -->
-  <header class="lg:hidden bg-white border-b border-brand-border sticky top-0 z-30">
-    <div class="px-4 sm:px-6 h-14 flex items-center justify-between">
+  <!-- Header atas (HP & tablet): logo + tombol keluar -->
+  <header class="lg:hidden sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-brand-border pt-[env(safe-area-inset-top)]">
+    <div class="px-4 h-14 flex items-center justify-between">
       <!-- Logo Brand -->
-      <router-link to="/cashier" class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-[#262624] text-white flex items-center justify-center font-bold text-lg shadow-sm">
+      <router-link to="/cashier" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-[#262624] text-white flex items-center justify-center font-bold text-sm shadow-sm">
           TM
         </div>
-        <div>
-          <h1 class="font-bold text-base text-[#262624] tracking-tight leading-none">Teras Minuman</h1>
-          <span class="text-[11px] text-neutral-400 font-medium"></span>
-        </div>
+        <h1 class="font-bold text-[15px] text-[#262624] tracking-tight leading-none">Teras Minuman</h1>
       </router-link>
+
+      <!-- Tombol Keluar (Versi Mobile) -->
+      <button
+        type="button"
+        @click="(e) => handleButtonClick(e)"
+        class="relative overflow-hidden w-9 h-9 rounded-full flex items-center justify-center text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors"
+        aria-label="Keluar dari sesi"
+        title="Keluar dari sesi"
+      >
+        <LogOut class="w-[18px] h-[18px]" />
+      </button>
     </div>
   </header>
 
@@ -216,39 +224,30 @@ onBeforeUnmount(() => {
     </div>
   </aside>
 
-  <!-- Bar tab bawah (HP & tablet) -->
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-brand-border pb-[env(safe-area-inset-bottom)]">
-    <!-- Diubah ke grid-cols-6 agar muat 5 menu nav + 1 tombol Keluar -->
-    <div class="grid grid-cols-6">
+  <!-- Bar tab bawah (HP & tablet): 5 menu utama -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-brand-border pb-[env(safe-area-inset-bottom)]">
+    <div class="grid grid-cols-5">
       <router-link
         v-for="link in links"
         :key="link.to"
         :to="link.to"
-        class="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors"
-        :class="isActive(link.to) ? 'text-[#262624]' : 'text-neutral-400'"
+        class="relative flex flex-col items-center justify-center gap-1 pt-2.5 pb-2 text-[11px] transition-all active:scale-95"
+        :class="isActive(link.to) ? 'text-[#262624] font-semibold' : 'text-neutral-400 font-medium'"
       >
+        <!-- Garis penanda menu aktif -->
         <span
-          class="px-3 py-1 rounded-full transition-colors"
+          v-if="isActive(link.to)"
+          class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-b-full bg-[#262624]"
+        ></span>
+        <span
+          class="px-4 py-1 rounded-full transition-colors"
           :class="isActive(link.to) ? 'bg-[#262624]/10' : ''"
         >
           <!-- Render komponen icon Lucide secara dinamis -->
           <component :is="link.icon" class="w-5 h-5" />
         </span>
-        <span class="truncate max-w-[56px]">{{ link.short }}</span>
+        <span class="leading-none">{{ link.short }}</span>
       </router-link>
-
-      <!-- Tombol Keluar Sejajar dengan Nav Link (Versi Mobile) -->
-      <button
-        type="button"
-        @click="isLogoutModalOpen = true"
-        class="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-red-600 hover:text-red-700 transition-colors"
-        title="Keluar dari sesi"
-      >
-        <span class="px-3 py-1 rounded-full bg-red-50 transition-colors">
-          <LogOut class="w-5 h-5 text-red-600" />
-        </span>
-        <span>Keluar</span>
-      </button>
     </div>
   </nav>
   <ConfirmLogoutModal

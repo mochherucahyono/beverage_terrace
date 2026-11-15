@@ -258,38 +258,60 @@ onMounted(fetchCategories);
     <!-- Modal Tambah / Edit -->
     <div
       v-if="isModalOpen"
-      class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+      class="category-overlay fixed inset-0 z-50 bg-[#262624]/40 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
     >
-      <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl border border-neutral-100">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-modal-title"
+        class="category-card w-full max-w-sm bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-[0_24px_60px_-20px_rgba(38,38,36,0.35)]"
+      >
         <div class="flex items-center justify-between">
-          <h3 class="text-sm font-bold text-[#262624]">{{ isEditing ? 'Edit Kategori' : 'Tambah Kategori Baru' }}</h3>
+          <h3 id="category-modal-title" class="text-base font-bold text-[#262624] tracking-tight">
+            {{ isEditing ? 'Edit Kategori' : 'Tambah Kategori Baru' }}
+          </h3>
           <button
             type="button"
             @click="closeModal"
             aria-label="Tutup"
             data-tooltip="Tutup"
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+            class="-mr-2 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
           >
             <X class="w-4 h-4" />
           </button>
         </div>
 
-        <form @submit.prevent="saveCategory" class="space-y-3">
-          <div>
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Nama Kategori</label>
+        <form @submit.prevent="saveCategory" class="mt-5 space-y-5">
+          <div class="space-y-1.5">
+            <label for="category-name" class="block text-xs font-semibold text-neutral-600">Nama Kategori</label>
             <input
+              id="category-name"
               v-model="form.name"
               type="text"
               maxlength="50"
               placeholder="misal: Marimas"
               required
-              class="w-full text-xs p-2.5 rounded-xl border border-neutral-200 focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
+              class="w-full text-sm py-3 px-4 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
             />
           </div>
-          <div class="flex items-center justify-end space-x-2 pt-2">
-            <button type="button" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100">Batal</button>
-            <button type="submit" :disabled="saving" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#262624] text-white hover:bg-neutral-800 disabled:opacity-50">
-              {{ saving ? 'Menyimpan...' : 'Simpan' }}
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              @click="closeModal"
+              class="py-3 px-4 rounded-xl text-sm font-semibold text-[#262624] bg-white border border-neutral-200 hover:bg-neutral-50 active:scale-[0.98] transition-all"
+            >Batal</button>
+            <button
+              type="submit"
+              :disabled="saving"
+              class="py-3 px-4 rounded-xl text-sm font-semibold bg-[#262624] text-white shadow-sm hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            >
+              <span
+                v-if="saving"
+                class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"
+                aria-hidden="true"
+              ></span>
+              <span>{{ saving ? 'Menyimpan...' : 'Simpan' }}</span>
             </button>
           </div>
         </form>
@@ -326,3 +348,19 @@ onMounted(fetchCategories);
     </transition>
   </div>
 </template>
+<style scoped>
+.category-overlay { animation: category-fade 0.18s ease-out both; }
+.category-card { animation: category-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes category-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes category-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .category-overlay, .category-card { animation: none; }
+}
+</style>

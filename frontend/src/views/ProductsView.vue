@@ -655,137 +655,163 @@ const selectSortOption = (opt) => {
     </div>
 
     <!-- Modal Form Tambah / Edit -->
-    <div
-      v-if="isModalOpen"
-      class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
-    >
-      <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl border border-neutral-100 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-bold text-[#262624]">
-            {{ isEditing ? 'Edit Produk' : 'Tambah Produk Baru' }}
-          </h3>
+<div
+  v-if="isModalOpen"
+  class="product-overlay fixed inset-0 z-50 bg-[#262624]/40 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+>
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="product-modal-title"
+    class="product-card w-full max-w-md bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-[0_24px_60px_-20px_rgba(38,38,36,0.35)] max-h-[90vh] overflow-y-auto"
+  >
+    <div class="flex items-center justify-between">
+      <h3 id="product-modal-title" class="text-base font-bold text-[#262624] tracking-tight">
+        {{ isEditing ? 'Edit Produk' : 'Tambah Produk Baru' }}
+      </h3>
+      <button
+        type="button"
+        @click="closeModal"
+        aria-label="Tutup"
+        data-tooltip="Tutup"
+        class="-mr-2 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
+    <form @submit.prevent="saveProduct" class="mt-5 space-y-4">
+      <!-- Foto -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-neutral-600">Foto (opsional)</label>
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 overflow-hidden flex items-center justify-center shrink-0">
+            <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
+            <svg v-else class="w-6 h-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <label class="px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-[#262624] hover:bg-neutral-50 active:scale-[0.98] cursor-pointer transition-all">
+              {{ imagePreview ? 'Ganti Foto' : 'Pilih Foto' }}
+              <input type="file" accept="image/*" class="hidden" @change="onPickImage" />
+            </label>
+            <button
+              v-if="imagePreview"
+              type="button"
+              @click="clearImage"
+              class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+            >Hapus</button>
+          </div>
+        </div>
+        <p class="text-[11px] text-neutral-400 leading-relaxed">Dipotong persegi dari tengah dan dikecilkan otomatis. Di HP bisa langsung foto dari kamera.</p>
+      </div>
+
+      <!-- Brand / Kategori -->
+      <div class="relative space-y-1.5">
+        <label class="block text-xs font-semibold text-neutral-600">Brand / Kategori</label>
+
+        <!-- Tombol Pemicu Custom Dropdown -->
+        <button
+          type="button"
+          @click="isCategoryDropdownOpen = !isCategoryDropdownOpen"
+          class="w-full flex items-center justify-between text-sm py-2.5 px-3.5 rounded-xl border border-neutral-200 bg-neutral-50/60 hover:border-neutral-300 focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all text-left"
+          :class="isCategoryDropdownOpen ? 'bg-white border-[#DA6B4F] ring-4 ring-[#DA6B4F]/10' : ''"
+        >
+          <div class="flex items-center space-x-2.5 truncate">
+            <span class="w-6 h-6 rounded-lg bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[11px] font-bold shrink-0">
+              {{ selectedCategoryObj?.name ? selectedCategoryObj.name.charAt(0).toUpperCase() : '?' }}
+            </span>
+            <span class="font-medium text-[#262624] truncate">{{ selectedCategoryObj?.name || 'Pilih Kategori' }}</span>
+          </div>
+          <ChevronDown
+            class="w-4 h-4 text-neutral-400 shrink-0 transition-transform duration-200"
+            :class="isCategoryDropdownOpen ? 'rotate-180' : ''"
+          />
+        </button>
+
+        <!-- Daftar Pilihan Melayang -->
+        <div
+          v-if="isCategoryDropdownOpen"
+          class="absolute left-0 right-0 mt-1 z-50 bg-white border border-neutral-200/80 rounded-2xl shadow-[0_16px_40px_-16px_rgba(38,38,36,0.3)] p-1.5 space-y-0.5 max-h-48 overflow-y-auto"
+        >
           <button
+            v-for="cat in categories"
+            :key="cat.id"
             type="button"
-            @click="closeModal"
-            aria-label="Tutup"
-            data-tooltip="Tutup"
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+            @click="selectFormCategory(cat)"
+            class="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-sm text-[#262624] hover:bg-neutral-100 transition-colors text-left"
+            :class="selectedCategoryObj?.id === cat.id ? 'bg-neutral-100' : ''"
           >
-            <X class="w-4 h-4" />
+            <span class="w-6 h-6 rounded-lg bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[11px] font-bold shrink-0">
+              {{ cat.name.charAt(0).toUpperCase() }}
+            </span>
+            <span class="font-medium truncate">{{ cat.name }}</span>
           </button>
         </div>
-
-        <form @submit.prevent="saveProduct" class="space-y-3">
-          <!-- Foto -->
-          <div>
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Foto (opsional)</label>
-            <div class="flex items-center gap-3">
-              <div class="w-16 h-16 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 overflow-hidden flex items-center justify-center shrink-0">
-                <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
-                <svg v-else class="w-6 h-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <label class="px-3 py-2 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-600 hover:bg-neutral-50 cursor-pointer">
-                  {{ imagePreview ? 'Ganti Foto' : 'Pilih Foto' }}
-                  <input type="file" accept="image/*" class="hidden" @change="onPickImage" />
-                </label>
-                <button
-                  v-if="imagePreview"
-                  type="button"
-                  @click="clearImage"
-                  class="px-3 py-2 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-50"
-                >Hapus</button>
-              </div>
-            </div>
-            <p class="text-[10px] text-neutral-400 mt-1">Dipotong persegi dari tengah dan dikecilkan otomatis. Di HP bisa langsung foto dari kamera.</p>
-          </div>
-
-          <div class="relative">
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Brand / Kategori</label>
-            
-            <!-- Tombol Pemicu Custom Dropdown -->
-            <button
-              type="button"
-              @click="isCategoryDropdownOpen = !isCategoryDropdownOpen"
-              class="w-full flex items-center justify-between text-xs p-2.5 rounded-xl border border-neutral-200 bg-neutral-50 focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all text-left"
-            >
-              <div class="flex items-center space-x-2 truncate">
-                <!-- Inisial Huruf Kategori atau Ikon Kecil -->
-                <span class="w-5 h-5 rounded-md bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[10px] font-bold shrink-0">
-                  {{ selectedCategoryObj?.name ? selectedCategoryObj.name.charAt(0).toUpperCase() : '?' }}
-                </span>
-                <span class="font-medium text-[#262624] truncate">{{ selectedCategoryObj?.name || 'Pilih Kategori' }}</span>
-              </div>
-              <!-- Icon panah bawah / indikator -->
-              <ChevronDown class="w-4 h-4 text-neutral-400 shrink-0" />
-            </button>
-
-            <!-- Daftar Pilihan Melayang (Floating Dropdown List) -->
-            <div
-              v-if="isCategoryDropdownOpen"
-              class="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-neutral-100 rounded-2xl shadow-xl p-1.5 space-y-0.5 max-h-48 overflow-y-auto"
-            >
-              <button
-                v-for="cat in categories"
-                :key="cat.id"
-                type="button"
-                @click="selectFormCategory(cat)"
-                class="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs text-[#262624] hover:bg-neutral-100 transition-colors text-left"
-              >
-                <span class="w-5 h-5 rounded-md bg-[#DA6B4F]/10 text-[#DA6B4F] flex items-center justify-center text-[10px] font-bold shrink-0">
-                  {{ cat.name.charAt(0).toUpperCase() }}
-                </span>
-                <span class="font-medium truncate">{{ cat.name }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Nama Produk</label>
-            <input v-model="form.name" type="text" placeholder="misal: Mocafrio / Choco Cino" required :class="inputClass" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Harga Modal</label>
-              <input v-model.number="form.cost_price" type="number" required :class="inputClass" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Harga Jual per Pcs</label>
-              <input v-model.number="form.selling_price" type="number" required :class="inputClass" />
-            </div>
-          </div>
-
-          <p class="text-[11px]" :class="formProfit < 0 ? 'text-red-600' : 'text-neutral-400'">
-            {{ formProfit < 0
-              ? `Harga jual di bawah modal: rugi ${formatRupiah(Math.abs(formProfit))} per pcs.`
-              : `Profit per pcs: ${formatRupiah(formProfit)}` }}
-          </p>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Jumlah Stok</label>
-              <input v-model.number="form.stock" type="number" required :class="inputClass" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-neutral-600 mb-1">Batas Minimum Stok Alert</label>
-              <input v-model.number="form.min_stock" type="number" required :class="inputClass" />
-            </div>
-          </div>
-
-          <div class="flex items-center justify-end space-x-2 pt-3">
-            <button type="button" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:bg-neutral-100">Batal</button>
-            <button
-              type="submit"
-              :disabled="saving"
-              class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#262624] text-white hover:bg-neutral-800 disabled:opacity-50"
-            >{{ saving ? 'Menyimpan...' : 'Simpan' }}</button>
-          </div>
-        </form>
       </div>
-    </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-neutral-600">Nama Produk</label>
+        <input v-model="form.name" type="text" placeholder="misal: Mocafrio / Choco Cino" required :class="inputClass" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-neutral-600">Harga Modal</label>
+          <input v-model.number="form.cost_price" type="number" required :class="inputClass" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-neutral-600">Harga Jual per Pcs</label>
+          <input v-model.number="form.selling_price" type="number" required :class="inputClass" />
+        </div>
+      </div>
+
+      <!-- Info profit -->
+      <p
+        class="text-xs font-medium rounded-xl px-3.5 py-2.5 border"
+        :class="formProfit < 0
+          ? 'text-red-700 bg-red-50 border-red-200'
+          : 'text-neutral-500 bg-neutral-50 border-neutral-200/70'"
+      >
+        {{ formProfit < 0
+          ? `Harga jual di bawah modal: rugi ${formatRupiah(Math.abs(formProfit))} per pcs.`
+          : `Profit per pcs: ${formatRupiah(formProfit)}` }}
+      </p>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-neutral-600">Jumlah Stok</label>
+          <input v-model.number="form.stock" type="number" required :class="inputClass" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-neutral-600">Batas Minimum Stok Alert</label>
+          <input v-model.number="form.min_stock" type="number" required :class="inputClass" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 pt-2">
+        <button
+          type="button"
+          @click="closeModal"
+          class="py-3 px-4 rounded-xl text-sm font-semibold text-[#262624] bg-white border border-neutral-200 hover:bg-neutral-50 active:scale-[0.98] transition-all"
+        >Batal</button>
+        <button
+          type="submit"
+          :disabled="saving"
+          class="py-3 px-4 rounded-xl text-sm font-semibold bg-[#262624] text-white shadow-sm hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+        >
+          <span
+            v-if="saving"
+            class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"
+            aria-hidden="true"
+          ></span>
+          <span>{{ saving ? 'Menyimpan...' : 'Simpan' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
     <!-- Modal Konfirmasi Hapus -->
     <ConfirmModal
@@ -823,5 +849,20 @@ const selectSortOption = (opt) => {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.product-overlay { animation: product-fade 0.18s ease-out both; }
+.product-card { animation: product-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes product-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes product-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-overlay, .product-card { animation: none; }
 }
 </style>

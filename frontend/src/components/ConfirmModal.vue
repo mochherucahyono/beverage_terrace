@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue';
+import { Trash2, AlertCircle } from 'lucide-vue-next';
 // Sembunyikan jika tidak pakai router di modal ini, atau import router jika butuh redirect setelah konfirmasi
 // import { useRouter } from 'vue-router'; 
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
@@ -49,48 +50,100 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
+    class="confirm-overlay fixed inset-0 z-50 bg-[#262624]/40 backdrop-blur-sm flex items-center justify-center p-4"
     @click.self="onBackdrop"
   >
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl border border-neutral-100">
-      <div class="flex items-start space-x-3">
-        <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </div>
-        <div class="space-y-1 min-w-0">
-          <h3 class="text-sm font-bold text-[#262624]">{{ title }}</h3>
-          <p class="text-xs text-neutral-500 leading-relaxed">{{ message }}</p>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      class="confirm-card w-full max-w-sm bg-white rounded-3xl p-6 text-center border border-neutral-200/80 shadow-[0_24px_60px_-20px_rgba(38,38,36,0.35)]"
+    >
+      <!-- Ikon -->
+      <div class="w-16 h-16 mx-auto rounded-full bg-red-50 flex items-center justify-center">
+        <div class="w-11 h-11 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+          <Trash2 class="w-5 h-5" />
         </div>
       </div>
 
+      <!-- Teks -->
+      <div class="mt-4 space-y-1.5">
+        <h3 id="confirm-title" class="text-base font-bold text-[#262624] tracking-tight">{{ title }}</h3>
+        <p v-if="message" class="text-[13px] text-neutral-500 leading-relaxed">{{ message }}</p>
+      </div>
+
+      <!-- Nama item yang akan dihapus -->
       <div
         v-if="itemName"
-        class="rounded-xl bg-neutral-50/80 border border-neutral-100 px-3 py-2 text-xs font-bold text-[#262624] truncate"
+        class="mt-4 rounded-xl bg-neutral-50 border border-neutral-200/70 px-3.5 py-2.5 text-[13px] font-semibold text-[#262624] truncate"
       >{{ itemName }}</div>
 
-      <p
+      <!-- Pesan error -->
+      <div
         v-if="error"
-        class="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2 leading-relaxed"
-      >{{ error }}</p>
+        role="alert"
+        class="mt-3 flex items-start gap-2 text-left text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 leading-relaxed"
+      >
+        <AlertCircle class="w-4 h-4 shrink-0 mt-px" />
+        <span>{{ error }}</span>
+      </div>
 
       <!-- Bagian Tombol Aksi dengan Efek Ripple -->
-      <div class="flex items-center justify-end space-x-2 pt-1">
+      <div class="grid grid-cols-2 gap-2.5 mt-6">
         <button
           type="button"
           @click="(e) => handleButtonAction(e, 'cancel')"
           :disabled="loading"
-          class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 transition-colors"
+          class="relative overflow-hidden py-3 px-4 rounded-xl text-sm font-semibold text-[#262624] bg-white border border-neutral-200 hover:bg-neutral-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >Batal</button>
-        
+
         <button
           type="button"
           @click="(e) => handleButtonAction(e, 'confirm')"
           :disabled="loading"
-          class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-        >{{ loading ? 'Menghapus...' : confirmText }}</button>
+          class="relative overflow-hidden py-3 px-4 rounded-xl text-sm font-semibold bg-red-600 text-white shadow-sm hover:bg-red-700 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+        >
+          <span
+            v-if="loading"
+            class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"
+            aria-hidden="true"
+          ></span>
+          <span>{{ loading ? 'Menghapus...' : confirmText }}</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.confirm-overlay {
+  animation: confirm-fade 0.18s ease-out both;
+}
+
+.confirm-card {
+  animation: confirm-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes confirm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-overlay,
+  .confirm-card {
+    animation: none;
+  }
+}
+</style>
