@@ -1,8 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import api from '../services/api';
-import ConfirmModal from '../components/ConfirmModal.vue';
-import {createRipple} from '../utils/ripple';
+import ConfirmModal from '../components/modals/ConfirmModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 import { Plus, Search, X, Pencil, Trash2, CheckCircle2 } from 'lucide-vue-next';
 
@@ -119,7 +118,7 @@ onMounted(fetchCategories);
 </script>
 
 <template>
-  <div class="space-y-5 relative min-h-screen pb-16">
+  <div class="space-y-5 relative min-h-screen">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
@@ -348,6 +347,7 @@ onMounted(fetchCategories);
     </transition>
   </div>
 </template>
+
 <style scoped>
 .category-overlay { animation: category-fade 0.18s ease-out both; }
 .category-card { animation: category-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }

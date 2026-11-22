@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { LogOut, X } from 'lucide-vue-next';
-import { createRipple } from '../utils/ripple';
-import { useBodyScrollLock } from '../composables/useBodyScrollLock';
+import { createRipple } from '../../utils/ripple';
+import { useBodyScrollLock } from '../../composables/useBodyScrollLock';
 
 // Props untuk mengontrol visibilitas modal
 const props = defineProps({

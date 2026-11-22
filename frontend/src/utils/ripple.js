@@ -28,7 +28,7 @@ export const createRipple = (e) => {
     if (window.getComputedStyle(target).position === 'static') {
         target.style.position = 'relative';
     }
-    target.style.overflow = 'hidden';
+    target.style.overflow = 'clip';
 
     target.appendChild(circle);
 

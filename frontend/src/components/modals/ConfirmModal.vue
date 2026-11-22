@@ -3,8 +3,8 @@ import { onMounted, onBeforeUnmount } from 'vue';
 import { Trash2, AlertCircle } from 'lucide-vue-next';
 // Sembunyikan jika tidak pakai router di modal ini, atau import router jika butuh redirect setelah konfirmasi
 // import { useRouter } from 'vue-router'; 
-import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { createRipple } from '../utils/ripple';
+import { useBodyScrollLock } from '../../composables/useBodyScrollLock';
+import { createRipple } from '../../utils/ripple';
 
 const props = defineProps({
   open: { type: Boolean, default: false },

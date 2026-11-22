@@ -2,7 +2,8 @@
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import api, { assetUrl } from '../services/api';
 import { resizeImage } from '../utils/image';
-import ConfirmModal from '../components/ConfirmModal.vue';
+import { createRipple } from '../utils/ripple';
+import ConfirmModal from '../components/modals/ConfirmModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 import { Plus, Search, X, Pencil, Trash2, Package, CheckCircle2, ChevronDown, Check, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
@@ -370,7 +371,7 @@ const selectSortOption = (opt) => {
         <p class="text-xs text-neutral-400">Atur daftar produk, harga modal, harga jual, dan sisa stok.</p>
       </div>
       <button
-        @click="openModal()"
+        @click="(e) => { createRipple(e); openModal(); }"
         class="px-4 py-2.5 bg-[#262624] text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5 shrink-0"
       >
         <Plus class="w-4 h-4" />
@@ -382,7 +383,7 @@ const selectSortOption = (opt) => {
     <div class="grid grid-cols-3 gap-3">
       <button
         type="button"
-        @click="stockFilter = ''"
+        @click="(e) => { createRipple(e); stockFilter = ''; }"
         class="text-left bg-white p-3.5 rounded-2xl border shadow-sm transition-all"
         :class="stockFilter === ''
           ? 'border-[#262624]/25 ring-2 ring-[#262624]/5'
@@ -393,7 +394,7 @@ const selectSortOption = (opt) => {
       </button>
       <button
         type="button"
-        @click="stockFilter = stockFilter === 'low' ? '' : 'low'"
+        @click="(e) => { createRipple(e); stockFilter = stockFilter === 'low' ? '' : 'low'; }"
         class="text-left bg-white p-3.5 rounded-2xl border shadow-sm transition-all"
         :class="stockFilter === 'low'
           ? 'border-amber-300 ring-2 ring-amber-100'
@@ -404,7 +405,7 @@ const selectSortOption = (opt) => {
       </button>
       <button
         type="button"
-        @click="stockFilter = stockFilter === 'out' ? '' : 'out'"
+        @click="(e) => { createRipple(e); stockFilter = stockFilter === 'out' ? '' : 'out'; }"
         class="text-left bg-white p-3.5 rounded-2xl border shadow-sm transition-all"
         :class="stockFilter === 'out'
           ? 'border-red-300 ring-2 ring-red-100'
@@ -487,6 +488,7 @@ const selectSortOption = (opt) => {
             type="button"
             @click="scrollCategories(-1)"
             aria-label="Geser kategori ke kiri"
+            title="Sebelumnya"
             class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
           >
             <ChevronLeft class="w-4 h-4" />
@@ -500,7 +502,7 @@ const selectSortOption = (opt) => {
       >
         <button
           @click="selectedCategory = ''"
-          class="px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
+          class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
           :class="selectedCategory === ''
             ? 'bg-[#262624] text-white border-[#262624]'
             : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
@@ -509,7 +511,7 @@ const selectSortOption = (opt) => {
           v-for="cat in categories"
           :key="cat.id"
           @click="selectedCategory = cat.id"
-          class="px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
+          class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
           :class="String(selectedCategory) === String(cat.id)
             ? 'bg-[#262624] text-white border-[#262624]'
             : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
@@ -525,6 +527,7 @@ const selectSortOption = (opt) => {
             type="button"
             @click="scrollCategories(1)"
             aria-label="Geser kategori ke kanan"
+            title="Selanjutnya"
             class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
           >
             <ChevronRight class="w-4 h-4" />
@@ -612,7 +615,7 @@ const selectSortOption = (opt) => {
 
             <div class="grid grid-cols-2 divide-x divide-neutral-100 border-t border-neutral-100 mt-auto">
               <button
-                @click="openModal(prod)"
+                @click="(e) => { createRipple(e); openModal(prod); }"
                 class="py-2.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
               >
                 <Pencil class="w-3.5 h-3.5" />

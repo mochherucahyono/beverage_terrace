@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next';
-import { createRipple } from '../utils/ripple';
+import { createRipple } from '../../utils/ripple.js';
 // Import icon yang dibutuhkan dari lucide-vue-next
 import { 
   Calculator, 
@@ -11,7 +11,7 @@ import {
   BarChart3, 
   History 
 } from 'lucide-vue-next';
-import ConfirmLogoutModal from './ConfirmLogoutModal.vue';
+import ConfirmLogoutModal from '../modals/ConfirmLogoutModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -102,6 +102,9 @@ const sidebarWidth = computed(() => (isCollapsed.value ? SIDEBAR_WIDTH_CLOSED : 
 
 const applyBodyOffset = () => {
   document.body.style.paddingLeft = isDesktop.value ? `${sidebarWidth.value}px` : '';
+  document.body.style.paddingBottom = isDesktop.value
+    ? ''
+    : 'calc(5rem + env(safe-area-inset-bottom))';
 };
 
 let desktopQuery;
@@ -126,6 +129,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   desktopQuery?.removeEventListener?.('change', onDesktopChange);
   document.body.style.paddingLeft = '';
+  document.body.style.paddingBottom = '';
   document.body.style.transition = '';
 });
 </script>
