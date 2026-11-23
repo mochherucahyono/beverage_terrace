@@ -12,6 +12,7 @@ import {
   History 
 } from 'lucide-vue-next';
 import ConfirmLogoutModal from '../modals/ConfirmLogoutModal.vue';
+import logo from '../../assets/icons.png';
 
 const route = useRoute();
 const router = useRouter();
@@ -140,8 +141,8 @@ onBeforeUnmount(() => {
     <div class="px-4 h-14 flex items-center justify-between">
       <!-- Logo Brand -->
       <router-link to="/cashier" class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-[#262624] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-          TM
+        <div class="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold text-sm">
+          <img :src="logo" alt="Teras Minuman" class="w-8 h-8 object-contain" />
         </div>
         <h1 class="font-bold text-[15px] text-[#262624] tracking-tight leading-none">Teras Minuman</h1>
       </router-link>
@@ -182,8 +183,8 @@ onBeforeUnmount(() => {
       class="h-16 shrink-0 flex items-center border-b border-brand-border overflow-hidden"
       :class="isCollapsed ? 'justify-center' : 'px-5 space-x-3'"
     >
-      <div class="w-9 h-9 shrink-0 rounded-xl bg-[#262624] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-        TM
+      <div class="w-9 h-9 shrink-0 rounded-xl text-white flex items-center justify-center font-bold text-lg">
+        <img :src="logo" alt="Teras Minuman" class="w-8 h-8 object-contain" />
       </div>
       <div v-if="!isCollapsed" class="whitespace-nowrap">
         <h1 class="font-bold text-base text-[#262624] tracking-tight leading-none">Teras Minuman</h1>

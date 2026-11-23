@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { Lock, User, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-vue-next';
 import api from '../../services/api';
 import { createRipple } from '../../utils/ripple';
+import logo from '../../assets/icons.png';
 
 onMounted(() => {
   document.title = 'Masuk - Teras Minuman';
@@ -61,8 +62,8 @@ const handleButtonClick = (e) => {
         <!-- Identitas Brand -->
         <div class="text-center space-y-2">
           <div class="relative w-14 h-14 mx-auto">
-            <div class="w-14 h-14 rounded-2xl bg-[#262624] text-white flex items-center justify-center font-bold text-lg shadow-md">
-              TM
+            <div class="w-14 h-14 rounded-2xl text-white flex items-center justify-center font-bold text-lg">
+              <img :src="logo" alt="Teras Minuman" class="w-14 h-14 object-contain" />
             </div>
             <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#DA6B4F] border-[3px] border-white"></span>
           </div>
