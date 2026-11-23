@@ -94,7 +94,7 @@ const handleButtonClick = (e) => {
                 required
                 autocomplete="username"
                 placeholder="Masukkan nama pengguna"
-                class="w-full text-sm py-3.5 pl-11 pr-4 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+                class="w-full text-sm py-3 pl-11 pr-4 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ const handleButtonClick = (e) => {
                 required
                 autocomplete="current-password"
                 placeholder="Masukkan kata sandi"
-                class="w-full text-sm py-3.5 pl-11 pr-11 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+                class="w-full text-sm py-3 pl-11 pr-11 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
               />
               <button
                 type="button"
