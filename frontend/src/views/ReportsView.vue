@@ -295,7 +295,7 @@ const filteredDaily = computed(() => {
                 type="text"
                 placeholder="Cari produk atau brand..."
                 autocomplete="off"
-                class="w-full text-base sm:text-sm py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+                class="w-full text-base text-xs sm:text-xs py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
               />
               <button
                 v-if="productSearch"
@@ -391,7 +391,7 @@ const filteredDaily = computed(() => {
               type="text"
               placeholder="Cari tanggal, mis. okt"
               autocomplete="off"
-              class="w-full text-base sm:text-sm py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+              class="w-full text-base text-xs sm:text-xs py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
             />
             <button
               v-if="dailySearch"
@@ -406,7 +406,7 @@ const filteredDaily = computed(() => {
           <select
             v-model="dailySort"
             aria-label="Urutkan rekap harian"
-            class="w-full sm:w-auto text-base sm:text-sm py-2.5 px-3 rounded-xl border border-neutral-200 bg-neutral-50/60 text-[#262624] font-medium hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+            class="w-full sm:w-auto text-base text-xs sm:text-xs py-2.5 px-3 rounded-xl border border-neutral-200 bg-neutral-50/60 text-[#262624] font-medium hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
           >
             <option value="newest">Terbaru</option>
             <option value="revenue">Omzet tertinggi</option>

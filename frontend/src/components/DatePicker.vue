@@ -205,7 +205,7 @@ const todayDisabled = computed(() => isDisabled(todayISO()));
       :aria-expanded="open"
       aria-haspopup="dialog"
       :aria-label="displayText ? `${ariaLabel}: ${displayText}` : ariaLabel"
-      class="w-full sm:min-w-[10.5rem] flex items-center justify-between gap-2 text-left text-base sm:text-sm py-2.5 px-3 rounded-xl border hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+      class="w-full sm:min-w-[10.5rem] flex items-center justify-between gap-2 text-left text-base text-xs sm:text-xs py-2.5 px-3 rounded-xl border hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
       :class="open
         ? 'bg-white border-[#DA6B4F] ring-4 ring-[#DA6B4F]/10'
         : 'bg-neutral-50/60 border-neutral-200'"

@@ -3,7 +3,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import api from '../services/api';
 import { createRipple } from '../utils/ripple';
 import DatePicker from '../components/DatePicker.vue';
-import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Receipt } from 'lucide-vue-next';
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight, Receipt, RotateCw } from 'lucide-vue-next';
 
 /* ---------- State ---------- */
 const transactions = ref([]);
@@ -187,7 +187,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
           type="text"
           placeholder="Cari no. transaksi, rasa, atau brand..."
           autocomplete="off"
-          class="w-full text-base sm:text-sm py-3 pl-11 pr-10 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+          class="w-full text-base text-xs sm:text-xs py-2.5 pl-11 pr-10 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
         />
         <button
           v-if="filters.search"
@@ -257,11 +257,11 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
         <button
           v-if="hasActiveFilters"
           type="button"
+          title="Reset filter"
           @click="(e) => { createRipple(e); resetFilters(); }"
           class="lg:ml-auto self-start lg:self-auto inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 transition-all"
         >
-          <X class="w-3.5 h-3.5" />
-          Reset filter
+          <RotateCw class="w-4 h-4" />
         </button>
       </div>
 
@@ -403,7 +403,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
             <span class="text-neutral-400">Per halaman</span>
             <select
               v-model.number="limit"
-              class="text-[16px] sm:text-xs py-1.5 px-2.5 rounded-lg border border-neutral-200 bg-white text-[#262624] font-medium focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
+              class="text-xs sm:text-xs py-1.5 px-2.5 rounded-lg border border-neutral-200 bg-white text-[#262624] font-medium focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
             >
               <option :value="10">10</option>
               <option :value="20">20</option>

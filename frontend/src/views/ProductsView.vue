@@ -489,7 +489,7 @@ const selectSortOption = (opt) => {
             @click="scrollCategories(-1)"
             aria-label="Geser kategori ke kiri"
             title="Sebelumnya"
-            class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+            class="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
           >
             <ChevronLeft class="w-4 h-4" />
           </button>
@@ -502,7 +502,7 @@ const selectSortOption = (opt) => {
       >
         <button
           @click="selectedCategory = ''"
-          class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
+          class="shrink-0 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all"
           :class="selectedCategory === ''
             ? 'bg-[#262624] text-white border-[#262624]'
             : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
@@ -511,7 +511,7 @@ const selectSortOption = (opt) => {
           v-for="cat in categories"
           :key="cat.id"
           @click="selectedCategory = cat.id"
-          class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all"
+          class="shrink-0 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all"
           :class="String(selectedCategory) === String(cat.id)
             ? 'bg-[#262624] text-white border-[#262624]'
             : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100'"
@@ -528,7 +528,7 @@ const selectSortOption = (opt) => {
             @click="scrollCategories(1)"
             aria-label="Geser kategori ke kanan"
             title="Selanjutnya"
-            class="w-7 h-7 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
+            class="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-neutral-200 shadow-sm text-neutral-600 hover:bg-neutral-100 active:scale-95 transition-all"
           >
             <ChevronRight class="w-4 h-4" />
           </button>
@@ -536,7 +536,7 @@ const selectSortOption = (opt) => {
       </div>
 
       <!-- Indikator hasil -->
-      <div v-if="hasActiveFilters" class="flex items-center justify-between text-[11px]">
+      <div v-if="hasActiveFilters" class="flex items-center justify-between text-xs">
         <span class="text-neutral-400">
           Menampilkan {{ filteredProducts.length }} dari {{ products.length }} produk
         </span>

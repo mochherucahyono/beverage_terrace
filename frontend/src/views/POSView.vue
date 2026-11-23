@@ -476,7 +476,7 @@ useBodyScrollLock(computed(() => showSuccess.value || isMobileCartOpen.value));
             type="text"
             placeholder="Cari produk atau brand..."
             autocomplete="off"
-            class="w-full text-base sm:text-sm py-3 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
+            class="w-full text-base text-xs sm:text-xs py-2.5 pl-10 pr-9 rounded-xl border border-neutral-200 bg-white shadow-sm focus:outline-none focus:border-[#DA6B4F] focus:ring-2 focus:ring-[#DA6B4F]/15 transition-all"
           />
           <button
             v-if="searchQuery"
