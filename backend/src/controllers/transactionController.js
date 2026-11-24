@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const escapeLike = (value) => value.replace(/[!%_]/g, '!$&');
 
 exports.createTransaction = async(req, res) => {
     const { payment_method, items } = req.body;
@@ -88,6 +89,7 @@ exports.getTransactions = async(req, res) => {
 exports.getHistory = async(req, res) => {
     try {
         const { start_date, end_date, payment_method } = req.query;
+        const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
         const offset = (page - 1) * limit;
@@ -106,6 +108,34 @@ exports.getHistory = async(req, res) => {
             where.push('t.payment_method = ?');
             params.push(payment_method);
         }
+        if (search) {
+            // Menerima bentuk ID yang tampil di UI, misalnya "#TRX-123" atau "TRX-123".
+            const idSearch = search.replace(/^#?TRX[-\s]*/i, '').trim();
+            const term = `%${escapeLike(search)}%`;
+            const searchConditions = [
+                `EXISTS (
+            SELECT 1
+            FROM transaction_items ti_search
+            JOIN products p_search ON p_search.id = ti_search.product_id
+            LEFT JOIN categories c_search ON c_search.id = p_search.category_id
+            WHERE ti_search.transaction_id = t.id
+              AND (
+                  LOWER(p_search.name) LIKE LOWER(?) ESCAPE '!'
+                  OR LOWER(c_search.name) LIKE LOWER(?) ESCAPE '!'
+              )
+        )`
+            ];
+
+            params.push(term, term);
+
+            if (idSearch) {
+                searchConditions.push(`CAST(t.id AS CHAR) LIKE ? ESCAPE '!'`);
+                params.push(`%${escapeLike(idSearch)}%`);
+            }
+
+            where.push(`(${searchConditions.join(' OR ')})`);
+        }
+
         const whereSql = where.length ? 'WHERE ' + where.join(' AND ') : '';
 
         const [

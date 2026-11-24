@@ -185,7 +185,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
         <input
           v-model="filters.search"
           type="text"
-          placeholder="Cari no. transaksi, rasa, atau brand..."
+          placeholder="Cari no. transaksi, produk, atau brand..."
           autocomplete="off"
           class="w-full text-base text-xs sm:text-xs py-2.5 pl-11 pr-10 rounded-xl border border-neutral-200 bg-neutral-50/60 placeholder:text-neutral-400 hover:border-neutral-300 focus:bg-white focus:outline-none focus:border-[#DA6B4F] focus:ring-4 focus:ring-[#DA6B4F]/10 transition-all"
         />
